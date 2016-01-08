@@ -1,0 +1,569 @@
+<!DOCTYPE >
+<!-- saved from url=(0041)http://182.254.136.120:99/mirror_fhr.html -->
+<html >
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="silas">
+    <title>抽奖</title>
+
+    <script type="text/javascript" src="./jquery-1.8.3.min.js"></script>
+    <script type="text/javascript" src="./awardRotate.js"></script>
+
+    <script type="text/javascript">
+
+        (function (doc, win) {
+            var docEl = doc.documentElement,
+                    resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+                    recalc = function () {
+                        var clientWidth = docEl.clientWidth;
+                        if (!clientWidth) return;
+                        docEl.style.fontSize = 20 * (clientWidth / 320) + 'px';
+                    };
+
+            if (!doc.addEventListener) return;
+            win.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener('DOMContentLoaded', recalc, false);
+        })(document, window);
+
+        var turnplate = {
+            restaraunts: [],				//名称
+            colors: [],					//背景颜色
+            fonts: [],                   //字体
+            images: [],                   //图片
+            outsideRadius: 172,			//外圆半径
+            textRadius: 120,				//文字位置半径
+            insideRadius: 48,			//内圆半径
+            startAngle: 0,				//起始角度
+
+            bRotate: false				//false:停止;ture:旋转
+        };
+
+        $(document).ready(function () {
+
+
+                $("tr:even").addClass("alt");
+                //给class为stripe的表格的偶数行添加class值为alt
+
+
+            //动态添加大转盘的奖品与奖品区域背景颜色
+            turnplate.restaraunts = ["2倍翻倍卡", "20江南币", "100体验金", "5倍翻倍卡", "100江南币", "1.5倍翻倍卡","8888体验金","谢谢您","50江南币","1000体验金"];
+            turnplate.colors = ["#fef8f3", "#ffffff", "#fef8f3", "#ffffff", "#fef8f3", "#ffffff", "#fef8f3", "#ffffff", "#fef8f3", "#ffffff", "#fef8f3", "#ffffff"];
+            turnplate.fonts = [" 20px Microsoft YaHei", "18px Microsoft YaHei", "14px Microsoft YaHei", "22px Microsoft YaHei", "16px Microsoft YaHei", "16px Microsoft YaHei"];
+            var rotateTimeOut = function () {
+                $('#wheelcanvas').rotate({
+                    angle: 0,
+                    animateTo: 2160,
+                    duration: 8000,
+                    callback: function () {
+                        alert('异常！');
+                    }
+                });
+            };
+
+            //旋转转盘 item:奖品位置; txt：提示语;
+            var rotateFn = function (item, txt) {
+                var $cvs = $('#wheelcanvas');
+                var per_angle = 360 / turnplate.restaraunts.length;
+                var item_angle = -item * (per_angle);
+                var des_angle = item_angle + 360 * 12 - 90 - 0.1 * per_angle * rnd(1, 9);
+                console.log("奖项:" + item + " 角度:" + item_angle + " 文字:" + txt + " 目标角度" + (des_angle % 360) + " 间隔角度:" + per_angle);
+
+
+                $cvs.stopRotate();
+                $cvs.rotate({
+                    angle: 0,
+                    animateTo: des_angle,
+                    duration: 8000,
+                    callback: function () {
+                        alert(txt);
+                        turnplate.bRotate = !turnplate.bRotate;
+                    }
+                });
+            };
+
+            $('canvas').click(function () {
+                if (turnplate.bRotate)return;
+                turnplate.bRotate = !turnplate.bRotate;
+                //取中奖位置
+                //TODO  由服务端发回
+                var item = +$("#input-value").val()||rnd(0, turnplate.restaraunts.length - 1);
+                rotateFn(item, turnplate.restaraunts[item]);
+            });
+        });
+
+        function rnd(n, m) {//取n m之间随机整数
+            var random = Math.floor(Math.random() * (m - n + 1) + n);
+            return random;
+
+        }
+
+
+        //页面所有元素加载完毕后执行drawRouletteWheel()方法对转盘进行渲染
+        window.onload = function () {
+            drawRouletteWheel();
+            drawRouletteWheel2();
+        };
+        function drawRouletteWheel2(){
+            var canvas = document.getElementById("wheelcanvas2");
+            var arc = 2 * Math.PI / (turnplate.restaraunts.length);
+            var ctx = canvas.getContext("2d");
+            var w = canvas.width;
+            var h = canvas.height;
+            //清空画布
+            canvas.width = canvas.width;
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = "#7bccfb";
+            ctx.moveTo(w/2,h/2);
+            ctx.lineTo(w/2-30,h/2);
+            ctx.lineTo(w/2,h/2-80);
+            ctx.lineTo(w/2+30,h/2);
+            ctx.fill();
+
+            ctx.arc(w / 2, h / 2, turnplate.insideRadius, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = "#f76666";
+            ctx.arc(w / 2, h / 2, turnplate.insideRadius-10, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+            ctx.save();
+            /*ctx.beginPath();*/
+            ctx.fillStyle = "#fffb9b";
+            var text = "立即";
+            var text2 = "抽奖";
+            ctx.translate(w / 2, h / 2-5);
+            ctx.font = "18px Microsoft YaHei";//turnplate.fonts[i];
+            ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+            ctx.restore();
+            ctx.save();
+            /*ctx.beginPath();*/
+            ctx.fillStyle = "#fffb9b";
+            ctx.translate(w / 2, h / 2+15);
+            ctx.font = "18px Microsoft YaHei";//turnplate.fonts[i];
+            ctx.fillText(text2, -ctx.measureText(text2).width / 2, 0);
+            ctx.restore();
+        };
+        function drawRouletteWheel() {
+            var canvas = document.getElementById("wheelcanvas");
+            var imgs = $("#img-container").children();
+            if (canvas.getContext) {
+                //每个奖项平均占据的扇形区域弧度
+                var arc = 2 * Math.PI / (turnplate.restaraunts.length);
+                var ctx = canvas.getContext("2d");
+                var w = canvas.width;
+                var h = canvas.height;
+                //清空画布
+                canvas.width = canvas.width;
+                ctx.save();
+                ctx.beginPath();
+                ctx.fillStyle = "#4ebefe";
+                ctx.arc(w / 2, h / 2, turnplate.outsideRadius+14, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                ctx.save();
+                ctx.beginPath();
+                ctx.fillStyle = "#f45252";
+                ctx.arc(w / 2, h / 2, turnplate.outsideRadius+10, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                ctx.save();
+                ctx.beginPath();
+                ctx.fillStyle = "#fff";
+                ctx.arc(w / 2, h / 2, turnplate.outsideRadius, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                //画每个扇形区域
+                for (var i = 0; i < turnplate.restaraunts.length; i++) {
+                    var angle = turnplate.startAngle + i * arc;
+                    ctx.fillStyle = turnplate.colors[i];
+                    ctx.beginPath();
+
+                    //圆心，半径，起始弧度，终止弧度，方向,false顺时针
+                    ctx.arc(w / 2, h / 2, turnplate.outsideRadius-5, angle, angle + arc, false);
+                    ctx.arc(w / 2, h / 2, turnplate.insideRadius, angle + arc, angle, true);
+                    ctx.fill();
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.fillStyle = "#ffdf01";
+                    ctx.arc(w / 2+(turnplate.outsideRadius+5)*Math.cos(angle),h/2+ (turnplate.outsideRadius+5)*Math.sin(angle), 3, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.save();
+
+                    //----绘制奖品开始----
+                    ctx.fillStyle = "#f45252";
+                    var text = turnplate.restaraunts[i];
+                    var line_height = 12;
+                    //translate方法重新映射画布上的 (0,0) 位置
+                    ctx.translate(w / 2 + Math.cos(angle + arc / 2) * turnplate.textRadius, h / 2 + Math.sin(angle + arc / 2) * turnplate.textRadius);
+
+                    //rotate方法旋转当前的绘图
+                    ctx.rotate(angle + arc /2 +Math.PI);
+
+                    ctx.font = "14px Microsoft YaHei";//turnplate.fonts[i];
+                    ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+
+                    //添加对应图标
+                    var img = imgs[i];
+                    //ctx.drawImage(img, -20, 20);
+                    ctx.restore();
+                    //----绘制奖品结束----
+                }
+            }
+        }
+
+
+
+
+
+    </script>
+</head>
+<body class="bg">
+
+<div class="banner">
+    <div class="ugly-shape">
+        <div id="triangle_left"></div>
+        <div id="triangle_left2"></div>
+        <div id="triangle_left3">30江南币/次</div>
+    </div>
+    <div class="turnplate" style="background-image:url(000.jpg);background-size:100% 100%;">
+        <canvas class="item" id="wheelcanvas" width="422px" height="422px" ></canvas>
+        <canvas class="item" id="wheelcanvas2" width="422px" height="422px" ></canvas>
+        <!--<img id="pointer" class="pointer" src="./turnplate-pointer.png">-->
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <div id="shape1">
+                    <div class="right">
+                        <div id="trapezoid2"></div>
+                        <div id="trapezoid1"></div>
+                    </div>
+                    <div class="left">
+                        <div id="trapezoid4"></div>
+                        <div id="trapezoid3"></div>
+                    </div>
+                    <div id="middle">中奖名单</div>
+                </div>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>138***123</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138***033</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138***4533</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138***6463</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138***12362</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138***2342343</td>
+                <td>1000江南币</td>
+            </tr><tr>
+                <td>138**2362363</td>
+                <td>1000江南币</td>
+            </tr>
+
+        </tbody>
+    </table>
+    <div id="img-container" style="display: none;">
+        <img src="./hand3.png"/>
+        <img src="./6s2.png"/>
+        <img src="./didi2.png"/>
+        <img src="./mirror2.png"/>
+        <img src="./6s2.png"/>
+        <img src="./didi2.png"/>
+
+    </div>
+</div>
+<style type="text/css">
+
+    html {
+        height: 100%;
+        width: 100%;
+        font-family: 'Heiti SC', 'Microsoft YaHei';
+        font-size: 20px;
+        overflow: hidden;
+        outline: 0;
+        -webkit-text-size-adjust:none;
+    }
+    body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        -webkit-user-select: none;
+        position: relative;
+    }
+    header,
+    footer {
+        width: 100%;
+        line-height: 1.5rem;
+        font-size: 1rem;
+        color: #000;
+        border: 1px solid #ccc;
+        text-align: center;
+        background-color: #ccc;
+    }
+    .bd {
+        margin-top: 1rem;
+        margin-bottom: .5rem;
+        margin-right: -.5rem;
+        font-size: 0;
+    }
+    .box {
+        width: 5rem;
+        height: 5rem;
+        display: inline-block;
+        margin-right:.5rem;
+        margin-bottom: .5rem;
+    }
+    .blue-box {
+        background-color: #06c;
+    }
+    .org-box {
+        background-color: #1fc195;
+    }
+
+
+    /* 大转盘样式 */
+    .banner {
+        display: block;
+        width: 16rem;
+        height: 16rem;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 0%;
+        background: url(111.jpg) repeat;
+    }
+
+    .banner .turnplate {
+        display: block;
+        width: 100%;
+        position: relative;
+    }
+
+    .banner .turnplate .item {
+        width: 100%;
+    }
+
+    .banner .turnplate img.pointer {
+        position: absolute;
+        width: 25.5%;
+        height: 32.5%;
+        left: 37.6%;
+        top: 30%;
+    }
+
+    .bg {
+        background: url(000.jpg) no-repeat;
+        background-size: 100%;
+    }
+
+    .silas-info {
+        color: #eee;
+        font-size: 12px;
+        text-align: right;
+    }
+    canvas{
+        position: absolute;
+        animation: myfirst 2s normal ease-in-out;
+        -moz-animation: myfirst 2s normal ease-in-out;	/* Firefox */
+        -webkit-animation: myfirst 2s normal ease-in-out;	/* Safari 和 Chrome */
+        -o-animation: myfirst 2s normal ease-in-out;	/* Opera */
+    }
+
+    /*旗帜形状*/
+    #triangle_left {
+        float: left;
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: 0 solid transparent;
+        border-right: 1.44rem solid #ffdf01;
+        border-bottom: 1.44rem solid transparent;
+    }
+    #triangle_left2 {
+        float: left;
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: 1.44rem solid transparent;
+        border-right: 1.44rem solid #ffdf01;
+        border-bottom: 0 solid transparent;
+    }
+    #triangle_left3 {
+        width: 3.2rem;
+        height: 1.44rem;
+        line-height:1.44rem;
+        background-color: #ffdf01;
+        float: left;
+        position: absolute;
+        left: 0.96rem;
+        font-size: 0.55rem;
+        color: #f45252;
+    }
+    .ugly-shape{
+        top: 15px;
+        right: 0;
+        position: absolute;
+        width: 4rem;
+        height: 1.44rem;
+    }
+
+    #trapezoid1 {
+        right: 0;
+        float: right;
+        position: absolute;
+        border-bottom: 1.76rem solid #fdec70;
+        border-left: 0px solid transparent;
+        border-right: 1.76rem solid transparent;
+        height: 0;
+        width: 1.76rem;
+    }
+    #trapezoid2 {
+        right: 0;
+        float: right;
+        position: absolute;
+        border-top: 1.76rem solid #fdec70;
+        border-left: 0px solid transparent;
+        border-right: 1.76rem solid transparent;
+        height: 0;
+        width: 1.76rem;
+    }
+
+    #trapezoid4 {
+        float: right;
+        position: absolute;
+        border-bottom: 1.76rem solid #fdec70;
+        border-right: 0px solid transparent;
+        border-left: 1.76rem solid transparent;
+        height: 0;
+        width: 1.76rem;
+    }
+    #trapezoid3 {
+        float: right;
+        position: absolute;
+        border-top: 1.76rem solid #fdec70;
+        border-right: 0px solid transparent;
+        border-left: 1.76rem solid transparent;
+        height: 0;
+        width: 1.76rem;
+    }
+    .right{
+        z-index: 9;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4.8em;
+        height: 1.76rem;
+    }
+    .left{
+        z-index: 9;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4.8em;
+        height: 1.76rem;
+    }
+    #middle{
+        color: #f45252;
+        line-height: 1.6rem;
+        text-align: center;
+        font-size: 1.1rem;
+        position: absolute;
+        left:3.2rem;
+        width: 9.6rem;
+        height: 1.6rem;
+        background-color: #fcec7e;
+        z-index: 10;
+        /*-webkit-box-shadow:0 0 10px #000;
+        -moz-box-shadow:0 0 10px #000;*/
+        box-shadow:0 0 1.44rem #EAD223;
+
+    }
+    #shape1{
+        position: relative;
+        top: 16.3rem;
+        width: 16rem;
+        height: 1.6rem;
+    }
+    table{
+        *table-layout:fixed;
+        overflow: hidden;
+        position: relative;
+        top: 16.5rem;
+        width: 16rem;
+        height: 5rem;
+    }
+    table tr th{
+        height:2rem;
+        line-height:2rem;
+        background:#999}
+    table tr td{
+        color: #666666;
+        font-size: 0.6rem;
+        height:2rem;
+        line-height:2rem;
+        text-align:center;
+        background:#fcf9e7;
+        vertical-align:middle;
+        /*width:8rem;*/
+    }
+    /* css注释：默认css背景被白色 */
+    table tr.alt td {
+        background:#fefdf9;
+    }
+    table tr{
+
+    }
+    table tbody{
+        overflow: hidden;
+        height: 2rem;
+    }
+
+    /* css 注释：默认隔行背景颜色 */
+</style>
+<script>
+    var count=0;
+    $(document).ready(function () {
+        setInterval(function () {
+
+            count++;
+
+
+            $("tr:eq(1)").animate({width:"8rem"},"slow").hide("slow", function () {
+                $(this).remove();
+                $("tbody").append("<tr>\
+                    <td>"+count+"</td>\
+                    <td>1000江南币</td>\
+            </tr>");
+
+            });
+
+        },1000);
+    });
+
+    /*$("tbody").click(function () {
+
+        $("tr:eq(1)").hide("slow");
+    })*/
+</script>
+
+</body>
+</html>
